@@ -1,4 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
+final formatter = DateFormat.yMd();
 
 const uuid = Uuid();
 
@@ -6,6 +10,14 @@ const uuid = Uuid();
 //to much flexibility accepting any kind of values even those who has a typo
 //flutter recognize all those values kind of some strings
 enum Category {food, travel, leisure, work}
+
+//this is a map with key value
+const categoryIcons = {
+  Category.food: Icons.lunch_dining,
+  Category.travel: Icons.flight_takeoff,
+  Category.leisure: Icons.movie,
+  Category.work: Icons.work
+};
 
 class Expense{
 
@@ -25,4 +37,9 @@ class Expense{
   final DateTime date;
   //this is an special custom type using the enum that we define later on
   final Category category;
+
+  //getter to format date
+  String get formattedDate {
+    return formatter.format(date);
+  }
 }

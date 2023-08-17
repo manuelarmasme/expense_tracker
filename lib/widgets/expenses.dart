@@ -1,5 +1,6 @@
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_tracker/models/expense.dart';
+import 'package:expense_tracker/widgets/new_expense.dart';
 import 'package:flutter/material.dart';
 
 class Expenses extends StatefulWidget {
@@ -23,13 +24,30 @@ class _ExpensesState extends State<Expenses> {
         title: 'Cinema',
         date: DateTime.now(),
         amount: 29,
-        category: Category.leisure
-      )
+        category: Category.leisure)
   ];
+
+  void _openAddExpenseOverlay() {
+    showModalBottomSheet(
+      context: context,
+      //ctx is the context for the modal element that is created by Flutter
+      //this context has the info related to the modal bottom sheet instead of the expense
+      builder: (ctx) => const NewExpense(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Flutter Expense Tracker'),
+        actions: [
+          IconButton(
+            onPressed: _openAddExpenseOverlay,
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           const Text('Chart'),
