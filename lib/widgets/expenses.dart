@@ -29,15 +29,69 @@ class _ExpensesState extends State<Expenses> {
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       //ctx is the context for the modal element that is created by Flutter
       //this context has the info related to the modal bottom sheet instead of the expense
-      builder: (ctx) => const NewExpense(),
+      builder: (ctx) => NewExpense(
+        onAddExpense: _addExpense,
+      ),
+    );
+  }
+
+  // add expense recevie a custom value type Expense
+  void _addExpense(Expense expense) {
+    setState(() {
+      //set state helps to update de ui when the expense is added
+      _registeredExpenses.add(expense);
+    });
+  }
+
+  //remove expense item
+  void _removeExpense(Expense expense) {
+    final expenseIndex = _registeredExpenses.indexOf(expense);
+
+    setState(() {
+      //remove from _registeredExpenses and update the ui
+      _registeredExpenses.remove(expense);
+    });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        content: const Text('Expense deleted'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _registeredExpenses.insert(
+                expenseIndex,
+                expense,
+              );
+            });
+          },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    //Expense list variable to know if there is more than zero expenses
+    Widget mainContent = const Center(
+      child: Text('There is not any expense found.'),
+    );
+
+    //if to check if the expense list is empty
+    if (_registeredExpenses.isNotEmpty) {
+      mainContent = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: _removeExpense,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter Expense Tracker'),
@@ -53,9 +107,7 @@ class _ExpensesState extends State<Expenses> {
           const Text('Chart'),
           //Expanded helps us to renderized this list because deep inside this widget is using column
           //so in this kind of case it won't show
-          Expanded(
-            child: ExpensesList(expenses: _registeredExpenses),
-          ),
+          Expanded(child: mainContent),
         ],
       ),
     );
