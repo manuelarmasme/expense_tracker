@@ -1,3 +1,4 @@
+import 'package:expense_tracker/widgets/chart/chart.dart';
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/widgets/new_expense.dart';
@@ -29,6 +30,7 @@ class _ExpensesState extends State<Expenses> {
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      useSafeArea: true,
       isScrollControlled: true,
       context: context,
       //ctx is the context for the modal element that is created by Flutter
@@ -79,6 +81,8 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     //Expense list variable to know if there is more than zero expenses
     Widget mainContent = const Center(
       child: Text('There is not any expense found.'),
@@ -102,14 +106,29 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const Text('Chart'),
-          //Expanded helps us to renderized this list because deep inside this widget is using column
-          //so in this kind of case it won't show
-          Expanded(child: mainContent),
-        ],
-      ),
+      body: width < 600
+          ? Column(
+              children: [
+                Chart(expenses: _registeredExpenses),
+                //Expanded helps us to renderized this list because deep inside this widget is using column
+                //so in this kind of case it won't show
+                Expanded(
+                  child: mainContent,
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Chart(expenses: _registeredExpenses),
+                ),
+                //Expanded helps us to renderized this list because deep inside this widget is using column
+                //so in this kind of case it won't show
+                Expanded(
+                  child: mainContent,
+                ),
+              ],
+            ),
     );
   }
 }

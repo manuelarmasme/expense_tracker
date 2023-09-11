@@ -103,95 +103,105 @@ class _NewExpenseState extends State<NewExpense> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titletController,
-            maxLength: 50,
-            decoration: const InputDecoration(
-              label: Text('Title'),
-            ),
-          ),
-          Row(
+    //We are telling that we are having and overflow that is affecting our UI, in this case the keyboard
+    //with this variable we are going to add some padding at the bottom to prevent not showing all the ui inputs
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+
+    return SizedBox(
+      height: double.infinity,
+      //THIS helps us to create and scroll that help us on the horizontal porttrait
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16 ),
+          child: Column(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      prefixText: '\$', label: Text('Amount')),
+              TextField(
+                controller: _titletController,
+                maxLength: 50,
+                decoration: const InputDecoration(
+                  label: Text('Title'),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(_selectedDate == null
-                        ? 'No Selected date'
-                        //with ! we're telling flutter to understand that at the end we are having a datetime
-                        : formatter.format(_selectedDate!)),
-                    IconButton(
-                      onPressed: _presentDatePicker,
-                      icon: const Icon(Icons.calendar_month),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          prefixText: '\$', label: Text('Amount')),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(_selectedDate == null
+                            ? 'No Selected date'
+                            //with ! we're telling flutter to understand that at the end we are having a datetime
+                            : formatter.format(_selectedDate!)),
+                        IconButton(
+                          onPressed: _presentDatePicker,
+                          icon: const Icon(Icons.calendar_month),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Row(
+                children: [
+                  DropdownButton(
+                    //value helps to get a selected value when the user selected one value it will show
+                    //on the dropdownmenu
+                    value: _selectedCategory,
+                    //items needs a DropdownMenuItem list and in this case category is an enum
+                    //for that reason with map we're going to transform into a DropdownMenuItem list
+                    items: Category.values
+                        .map(
+                          (category) => DropdownMenuItem(
+                            //in this case we are telling that this is the value that you have to store internally, when the user selected
+                            value: category,
+                            child: Text(
+                              category.name.toUpperCase(),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      //this helps us to dont go to the set state, if the dropdown value is null
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    },
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      //Navigator .pop needs the context of the flutter to close the overlay
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _submitExpenseData();
+                    },
+                    child: const Text('Save Expense'),
+                  ),
+                ],
               )
             ],
           ),
-          const SizedBox(
-            height: 16,
-          ),
-          Row(
-            children: [
-              DropdownButton(
-                //value helps to get a selected value when the user selected one value it will show
-                //on the dropdownmenu
-                value: _selectedCategory,
-                //items needs a DropdownMenuItem list and in this case category is an enum
-                //for that reason with map we're going to transform into a DropdownMenuItem list
-                items: Category.values
-                    .map(
-                      (category) => DropdownMenuItem(
-                        //in this case we are telling that this is the value that you have to store internally, when the user selected
-                        value: category,
-                        child: Text(
-                          category.name.toUpperCase(),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  //this helps us to dont go to the set state, if the dropdown value is null
-                  if (value == null) {
-                    return;
-                  }
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  //Navigator .pop needs the context of the flutter to close the overlay
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _submitExpenseData();
-                },
-                child: const Text('Save Expense'),
-              ),
-            ],
-          )
-        ],
+        ),
       ),
     );
   }
