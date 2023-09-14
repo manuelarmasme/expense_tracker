@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
 
@@ -42,6 +45,43 @@ class _NewExpenseState extends State<NewExpense> {
     });
   }
 
+  //function to show dialog depends on the platform
+  void _showDialog(){
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+            context: context,
+            builder: (ctx) => CupertinoAlertDialog(
+                    title: const Text('Invalid input'),
+                    content: const Text(
+                        'Please make sure a valid title, amount, date and category was entered'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('Okay'),
+                      ),
+                    ]));
+    } else {
+      //this dialog shows an alert dialog with an button
+      showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+                  title: const Text('Invalid input'),
+                  content: const Text(
+                      'Please make sure a valid title, amount, date and category was entered'),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('Okay'))
+                  ]));
+
+    }
+
+  }
+
   void _submitExpenseData() {
     //to convert the string of amount controller, we have to use the double property tryparse
     final enteredAmount = double.tryParse(_amountController.text);
@@ -59,20 +99,7 @@ class _NewExpenseState extends State<NewExpense> {
       //isEmpty expect an String or list an the result of the trim is an string
       // if _selectedDate still null we have to show an error
 
-      //this dialog shows an alert dialog with an button
-      showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                  title: const Text('Invalid input'),
-                  content: const Text(
-                      'Please make sure a valid title, amount, date and category was entered'),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                        },
-                        child: const Text('Okay'))
-                  ]));
+      _showDialog();
       //this return helps to break the function and don't continue reading the code
       return;
     }
@@ -107,102 +134,203 @@ class _NewExpenseState extends State<NewExpense> {
     //with this variable we are going to add some padding at the bottom to prevent not showing all the ui inputs
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
-    return SizedBox(
-      height: double.infinity,
-      //THIS helps us to create and scroll that help us on the horizontal porttrait
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16 ),
-          child: Column(
-            children: [
-              TextField(
-                controller: _titletController,
-                maxLength: 50,
-                decoration: const InputDecoration(
-                  label: Text('Title'),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                          prefixText: '\$', label: Text('Amount')),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(_selectedDate == null
-                            ? 'No Selected date'
-                            //with ! we're telling flutter to understand that at the end we are having a datetime
-                            : formatter.format(_selectedDate!)),
-                        IconButton(
-                          onPressed: _presentDatePicker,
-                          icon: const Icon(Icons.calendar_month),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
-                children: [
-                  DropdownButton(
-                    //value helps to get a selected value when the user selected one value it will show
-                    //on the dropdownmenu
-                    value: _selectedCategory,
-                    //items needs a DropdownMenuItem list and in this case category is an enum
-                    //for that reason with map we're going to transform into a DropdownMenuItem list
-                    items: Category.values
-                        .map(
-                          (category) => DropdownMenuItem(
-                            //in this case we are telling that this is the value that you have to store internally, when the user selected
-                            value: category,
-                            child: Text(
-                              category.name.toUpperCase(),
-                            ),
+    //LayoutBuilder allow us to create a dinamyc layout
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final width = constraints.maxWidth;
+
+      return SizedBox(
+        height: double.infinity,
+        //THIS helps us to create and scroll that help us on the horizontal porttrait
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16),
+            child: Column(
+              children: [
+                if (width >= 600)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _titletController,
+                          maxLength: 50,
+                          decoration: const InputDecoration(
+                            label: Text('Title'),
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      //this helps us to dont go to the set state, if the dropdown value is null
-                      if (value == null) {
-                        return;
-                      }
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 24,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                              prefixText: '\$', label: Text('Amount')),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  TextField(
+                    controller: _titletController,
+                    maxLength: 50,
+                    decoration: const InputDecoration(
+                      label: Text('Title'),
+                    ),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () {
-                      //Navigator .pop needs the context of the flutter to close the overlay
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Cancel'),
+                if (width >= 600)
+                  Row(
+                    children: [
+                      DropdownButton(
+                        //value helps to get a selected value when the user selected one value it will show
+                        //on the dropdownmenu
+                        value: _selectedCategory,
+                        //items needs a DropdownMenuItem list and in this case category is an enum
+                        //for that reason with map we're going to transform into a DropdownMenuItem list
+                        items: Category.values
+                            .map(
+                              (category) => DropdownMenuItem(
+                                //in this case we are telling that this is the value that you have to store internally, when the user selected
+                                value: category,
+                                child: Text(
+                                  category.name.toUpperCase(),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          //this helps us to dont go to the set state, if the dropdown value is null
+                          if (value == null) {
+                            return;
+                          }
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(_selectedDate == null
+                                ? 'No Selected date'
+                                //with ! we're telling flutter to understand that at the end we are having a datetime
+                                : formatter.format(_selectedDate!)),
+                            IconButton(
+                              onPressed: _presentDatePicker,
+                              icon: const Icon(Icons.calendar_month),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                              prefixText: '\$', label: Text('Amount')),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(_selectedDate == null
+                                ? 'No Selected date'
+                                //with ! we're telling flutter to understand that at the end we are having a datetime
+                                : formatter.format(_selectedDate!)),
+                            IconButton(
+                              onPressed: _presentDatePicker,
+                              icon: const Icon(Icons.calendar_month),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _submitExpenseData();
-                    },
-                    child: const Text('Save Expense'),
-                  ),
-                ],
-              )
-            ],
+                const SizedBox(
+                  height: 16,
+                ),
+                if (width >= 600)
+                  Row(
+                    children: [
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          //Navigator .pop needs the context of the flutter to close the overlay
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _submitExpenseData();
+                        },
+                        child: const Text('Save Expense'),
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      DropdownButton(
+                        //value helps to get a selected value when the user selected one value it will show
+                        //on the dropdownmenu
+                        value: _selectedCategory,
+                        //items needs a DropdownMenuItem list and in this case category is an enum
+                        //for that reason with map we're going to transform into a DropdownMenuItem list
+                        items: Category.values
+                            .map(
+                              (category) => DropdownMenuItem(
+                                //in this case we are telling that this is the value that you have to store internally, when the user selected
+                                value: category,
+                                child: Text(
+                                  category.name.toUpperCase(),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          //this helps us to dont go to the set state, if the dropdown value is null
+                          if (value == null) {
+                            return;
+                          }
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        },
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          //Navigator .pop needs the context of the flutter to close the overlay
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _submitExpenseData();
+                        },
+                        child: const Text('Save Expense'),
+                      ),
+                    ],
+                  )
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
